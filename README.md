@@ -1,91 +1,59 @@
-# README – Portflow Evaluatie Export Script
+# Portflow Evaluatie Exporter (Visual Dashboard)
 
-Dit Python-script haalt evaluaties en feedback op van studenten uit Portflow en kan deze exporteren naar een CSV-bestand of op het scherm tonen voor één student.  
+Een eenvoudige, lokaal te draaien visuele uitbreiding op het fantastische originele werk van [ntaheij/PythonPortflow](https://github.com/ntaheij/PythonPortflow).
 
----
-
-## Bearer-token ophalen
-
-1. [Open Portflow](https://canvas.hu.nl/accounts/1/external_tools/1134) via Canvas in de browser.  
-2. Rechtsklik op de pagina en kies **Inspect**.  
-
-![Photo if inspect when right-clicking](img/inspect.png)
-
-3. Ga naar het tabblad **Network** (Netwerk).  
-
-![Photo of network tab selected in Inspect window](img/networktab.png)
-
-4. Navigeer naar een andere pagina in Portflow, bijvoorbeeld **Evaluatieverzoeken**.  
-5. Zoek in de lijst met requests een request met woorden zoals `dashboard`, `sections`, `current`, `received`, etc. (geen .css, .js, etc bestanden)
-
-![Requests](img/requests.png)
-
-6. Klik op dit request en scroll naar **Request Headers**.  
-7. Zoek de regel **Authorization** en kopieer alles wat achter `Bearer ` staat (begint meestal met `eyJ...`).  
-   - Dit is je Bearer-token dat het script nodig heeft om verbinding te maken met Portflow. 
-
-![Bearer example](img/bearer.png) 
-
-8. Gebruik deze Bearer token in het script.
+Dit project haalt evaluaties en feedback op van studenten uit Portflow en toont deze in een prachtig ontworpen, lokaal web-dashboard in HU-huisstijl. Je kunt de voortgang van studenten in één oogopslag zien en de resultaten overzichtelijk exporteren of printen.
 
 ---
 
-## Script starten (Web Interface)
+## 🚀 Hoe begin ik?
 
-De makkelijkste manier om de tool te gebruiken is via de nieuwe grafische web interface!
-1. Open je terminal of command prompt in de map waar dit script staat.
-2. Zorg dat de benodigdheden zijn geïnstalleerd (`pip install -r requirements.txt`).
-3. Run het volgende commando:
-   ```bash
-   python3 portflow_export.py
-   ```
-4. Je webbrowser opent nu automatisch de Portflow Exporter (in HU-huisstijl). 
-5. Plak je Bearer-token en volg de stappen op het scherm om studenten op te halen en data te exporteren.
+De makkelijkste manier om te starten is door de bestanden op je computer op te slaan en onze interactieve gids te gebruiken.
 
-*(Als je een `.exe` versie van dit script hebt gekregen die up-to-date is, hoef je alleen de `.exe` aan te klikken. De web interface opent dan vanzelf).*
+1. Download of clone deze repository naar je computer.
+2. Open het bestand **`START_HERE.html`** door erop te dubbelklikken.
+3. Volg de super simpele instructies in je browser voor jouw werkwijze (Windows, Mac, of VS Code) om de applicatie te starten.
 
-## Script starten (Klassieke Terminal / CLI)
+## 🔑 Bearer-token ophalen
 
-Mocht je liever de oude, tekstuele command-line interface gebruiken, voeg dan `--cli` toe aan je commando:
+Om in te loggen in je lokale dashboard heb je een persoonlijke "Bearer Token" van Canvas nodig. Mocht je niet weten hoe je deze vindt, volg dan deze stappen:
+
+1. [Open Portflow](https://canvas.hu.nl/accounts/1/external_tools/1134) via Canvas in je browser.
+2. Rechtsklik ergens op de pagina en kies **Inspect / Inspecteren**.
+
+![Inspecteren](img/inspect.png)
+
+3. Ga in het nieuwe paneel naar het tabblad **Network / Netwerk**.
+
+![Netwerk Tab](img/networktab.png)
+
+4. Navigeer in Canvas/Portflow naar een andere pagina (bijv. Evaluatieverzoeken).
+5. Zoek in de lijst met requests naar een bestand genaamd `dashboard`, `sections` of `current` (sla de `.css` en `.js` bestanden over).
+6. Klik erop, scroll naar de **Request Headers** en kopieer de lange code die direct achter `Authorization: Bearer` staat (dit begint vaak met `eyJ...`).
+
+![Bearer Token](img/bearer.png)
+
+7. **Kopieer deze token en plak het direct in het inlogscherm van je lokale dashboard!**
+
+*(Let op: deel deze token nooit met anderen!)*
+
+---
+
+## 💻 Voor de Developers
+
+### Applicatie Starten
+Installeer de Python libraries en start de app direct via je terminal:
+```bash
+pip install -r requirements.txt
+python3 portflow_export.py
+```
+De applicatie start automatisch je browser en is te bereiken op `http://127.0.0.1:8080`.
+
+### Klassieke CLI Mode
+Mocht je de voorkeur geven aan de originele, tekstuele command-line interface in plaats van de visuele interface, start het script dan met de `--cli` flag:
 ```bash
 python3 portflow_export.py --cli
 ```
 
-## Menu Uitleg
-### Studenten ophalen
-
-Je kunt kiezen tussen:
-
-1) Alle studenten met gedeelde collectie
-
-2) Studenten uit een voorgedefineerde sectie uit Portflow.
- 
-3) Studenten uit een custom sectie (je vult dan section_id in, terug te vinden in de requests van Portflow op het coachingdashboard). Alleen nuttig voor testen.
-
-### Output kiezen
-
-1) Enkel een student → laat alle evaluaties voor die student zien.
-
-2) Alle studenten → export naar CSV → maakt een CSV-bestand results.csv met evaluaties per student en per doel.
-
-### CSV-formaat
-Header: Studentname, Goal1, Goal2, Goal3...
-
-Voor elk doel staan de evaluaties zoals:
-
-Startniveau, 1, 1
-Meerdere evaluaties worden gescheiden door een komma.
-
-## Extra info
-Ctrl+C: het script kan altijd netjes afgesloten worden met Ctrl+C.
-
-Bearer-token verlopen: als je token is verlopen, zal het script vragen om een nieuw token.
-
-Fouten bij netwerk: het script probeert automatisch tot 3 keer opnieuw bij netwerkproblemen. Na 3 mislukte pogingen wacht het 1 minuut en gaat verder.
-
-## Tips
-Zorg dat je Bearer-token geldig is bij aanvang.
-
-Gebruik de terminal / command prompt in dezelfde map als het script om problemen met bestandslocaties te voorkomen.
-
-Als er veel studenten zijn, kan het verwerken even duren.
+---
+*Originele CLI-backend script gebouwd door [ntaheij/PythonPortflow](https://github.com/ntaheij/PythonPortflow). Visueel web-dashboard ontworpen en toegevoegd door lalamaker.*
