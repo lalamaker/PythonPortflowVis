@@ -1,0 +1,9 @@
+dist
+build
+venv
+dev
+*.spec
+*.exe
+__pycache__
+.env
+goals_dump.json

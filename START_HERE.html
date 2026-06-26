@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Portflow Exporter - Startgids</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #001158;
+            --text-secondary: #475569;
+            --primary-color: #E3004F;
+            --primary-hover: #c90046;
+            --secondary-color: #001158;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 3rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 { color: var(--secondary-color); font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+        h2 { color: var(--primary-color); font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;}
+        h3 { color: var(--secondary-color); font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; }
+        p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 17, 88, 0.05);
+        }
+        .code-block {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            width: 28px;
+            height: 28px;
+            text-align: center;
+            border-radius: 50%;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .alert {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            color: #b45309;
+        }
+        li { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>Portflow Exporter</h1>
+    <p style="font-size: 1.1rem;">Welkom! Dit is de interactieve gids om het visuele Portflow dashboard op jouw eigen computer te starten. Kies hieronder de route die het beste bij jouw werkwijze past.</p>
+
+    <div class="card">
+        <h2><span class="step-badge">1</span> Het Dashboard Starten</h2>
+        <p>Kies één van de onderstaande routes om de lokale server op jouw computer te lanceren. Het inloggen doe je daarna gewoon veilig via de browser-interface!</p>
+
+        <h3>Route A: De Designer (VS Code / IDE)</h3>
+        <p>Dit is de makkelijkste route als je Visual Studio Code (VS Code) al gebruikt of gewoon simpel de map open hebt.</p>
+        <ol style="color: var(--text-secondary); margin-left: 1.5rem; margin-bottom: 1rem;">
+            <li>Sleep je volledige <code>portflow</code> map in VS Code om het project te openen.</li>
+            <li>Ga in het bovenste menu van VS Code naar <strong>Terminal</strong> &rarr; <strong>New Terminal</strong>.</li>
+            <li>Typ het volgende commando onderin je scherm en druk op Enter:</li>
+        </ol>
+        <div class="code-block">python3 portflow_export.py</div>
+        <p>Het dashboard opent nu automatisch in je internetbrowser!</p>
+
+        <h3>Route B: De Developer (GitHub User / Mac Terminal)</h3>
+        <p>Voor gebruikers die comfortabel zijn met de terminal of command line.</p>
+        <ol style="color: var(--text-secondary); margin-left: 1.5rem; margin-bottom: 1rem;">
+            <li>Open de <strong>Terminal</strong> (of iTerm2).</li>
+            <li>Navigeer naar de map waar je het project hebt geplaatst:</li>
+        </ol>
+        <div class="code-block">cd ~/Downloads/portflow</div>
+        <p>3. Installeer indien nodig de vereisten, en start de lokale server:</p>
+        <div class="code-block">pip install -r requirements.txt<br>python3 portflow_export.py</div>
+
+        <h3>Route C: De Standaard Windows Gebruiker</h3>
+        <p>Als je op een Windows laptop werkt zonder speciale code-editors of terminal ervaring.</p>
+        <ol style="color: var(--text-secondary); margin-left: 1.5rem; margin-bottom: 1rem;">
+            <li>Druk op de Windows-toets, typ <strong>cmd</strong> en druk op Enter om de Command Prompt te openen.</li>
+            <li>Navigeer naar de map waar je portflow hebt uitgepakt (bijv. in je Downloads):</li>
+        </ol>
+        <div class="code-block">cd Downloads\portflow</div>
+        <p>3. Start het script met Python (zorg dat Python 3 is geïnstalleerd vanuit de Microsoft Store!):</p>
+        <div class="code-block">python portflow_export.py</div>
+    </div>
+    
+    <div class="card" style="text-align: center; border-color: var(--primary-color);">
+        <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Klaar! 🎉</h3>
+        <p style="margin-bottom: 0;">
+            Zodra het script draait, springt je browser vanzelf open naar <strong>http://127.0.0.1:8080</strong>.<br><br>
+            Om de applicatie later weer veilig af te sluiten, ga je terug naar je terminal of Command Prompt en druk je op <strong>Ctrl + C</strong>.
+        </p>
+    </div>
+</body>
+</html>

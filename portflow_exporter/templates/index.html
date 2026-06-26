@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portflow Exporter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Portflow Exporter</h1>
+            <p>Fetch and export student evaluations effortlessly.</p>
+        </header>
+
+        <main class="app-main">
+            <!-- Step 1: Authentication -->
+            <section id="step-auth" class="card active">
+                <h2>1. Authentication</h2>
+                <div class="form-group">
+                    <label for="bearer-token">Bearer Token</label>
+                    <input type="password" id="bearer-token" placeholder="Paste your Bearer token here (e.g. eyJhb...)">
+                    <p class="help-text">Found in your browser's Network tab under Request Headers -> Authorization.</p>
+                </div>
+                <button id="btn-auth" class="btn primary-btn">Connect to Portflow</button>
+                <div id="auth-error" class="error-message hidden"></div>
+            </section>
+
+            <!-- Step 2: Student Selection -->
+            <section id="step-students" class="card hidden">
+                <h2>2. Select Students</h2>
+                <div class="form-group">
+                    <label for="fetch-method">Fetching Method</label>
+                    <select id="fetch-method">
+                        <option value="shared">All students with shared collection</option>
+                        <option value="section_select">Students from specific section</option>
+                    </select>
+                </div>
+                
+                <div id="section-selector" class="form-group hidden">
+                    <label for="section-id">Select Section</label>
+                    <select id="section-id">
+                        <option value="">Loading sections...</option>
+                    </select>
+                </div>
+
+                <button id="btn-fetch-students" class="btn primary-btn">Fetch Students</button>
+                
+                <div id="students-list-container" class="hidden mt-4">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h3>Found <span id="student-count">0</span> students</h3>
+                        <label class="checkbox-label" style="font-size: 0.875rem;">
+                            <input type="checkbox" id="select-all-students"> Select All
+                        </label>
+                    </div>
+                    <input type="text" id="student-search" placeholder="Search for a specific student..." style="margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 6px; font-size: 0.875rem;">
+                    <div class="students-list" id="students-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <div id="students-error" class="error-message hidden"></div>
+            </section>
+
+            <!-- Step 3: Export Options -->
+            <section id="step-export" class="card hidden">
+                <h2>3. Export Options</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="time-range">Time Range</label>
+                        <select id="time-range">
+                            <option value="all">All time</option>
+                            <option value="last">Last N days</option>
+                            <option value="between">Between dates</option>
+                            <option value="since">Since date</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label mt-label">
+                            <input type="checkbox" id="include-reviewer">
+                            Include reviewer names
+                        </label>
+                    </div>
+                </div>
+
+                <div id="time-range-inputs" class="form-row hidden">
+                    <!-- Dynamic inputs injected here -->
+                </div>
+
+                <button id="btn-export" class="btn primary-btn">Export Results</button>
+                <button id="btn-download-csv" class="btn secondary-btn hidden">Download CSV</button>
+                <div id="export-error" class="error-message hidden"></div>
+            </section>
+
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p id="loading-text">Loading...</p>
+            </div>
+            
+            <!-- Results Table -->
+            <section id="results-section" class="card hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2 style="margin: 0;">Results Preview</h2>
+                    <label class="checkbox-label" style="font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; color: var(--text-secondary);">
+                        <input type="checkbox" id="hide-names-toggle"> Hide Names (for screenshots)
+                    </label>
+                </div>
+                <div id="results-container">
+                    <!-- Dynamic tables populated by JS -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
