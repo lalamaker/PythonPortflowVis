@@ -280,7 +280,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Checker UI Helpers
-    function buildStatusSection(title, sectionData) {
+    function buildRequirementsSection(title, sectionData) {
+    if (sectionData.isInfo) return `<div style="margin-bottom: 1rem;"><div style="font-weight: 600; font-size: 0.95em; color: #4b5563; margin-bottom: 0.5rem;">${title}:</div><div style="padding-left: 1.5rem; color: #374151;">${sectionData.text}</div></div>`;
+    
+    let html = `<div style="margin-bottom: 1rem;">
+        <div style="font-weight: 600; font-size: 0.95em; color: #4b5563; margin-bottom: 0.5rem;">${title}:</div>
+        <div style="padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; line-height: 1.4;">`;
+        
+    if (sectionData.items && sectionData.items.length > 0) {
+        sectionData.items.forEach(item => {
+            if (item.isBooleanTarget) {
+                html += `<div style="color: #374151;">${item.label}</div>`;
+            } else if (item.target !== undefined) {
+                html += `<div style="color: #374151;">${item.label}: <strong>${item.target}</strong></div>`;
+            }
+        });
+    }
+    html += `</div></div>`;
+    return html;
+}
+
+function buildStatusSection(title, sectionData) {
         if (!sectionData) return '';
         
         if (sectionData.isInfo) {
@@ -303,7 +323,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; line-height: 1.5; list-style: none;">`;
         
         sectionData.items.forEach(item => {
-            html += `<li><span style="color: #4b5563;">${item.label}:</span> <span style="font-weight: 700; color: #111827; margin-left: 4px;">${item.value}</span></li>`;
+            let icon = '';
+            let missingHtml = '';
+            if (item.isPassed === true) {
+                icon = '<span style="color: #10b981; font-size: 13px; margin-left: 6px; font-weight: bold;">✓</span>';
+            } else if (item.isPassed === false) {
+                icon = '<span style="color: #ef4444; font-size: 13px; margin-left: 6px; font-weight: bold;">✕</span>';
+                if (item.missingText) {
+                    missingHtml = `<span style="color: #9ca3af; font-size: 0.85em; font-style: italic; margin-left: 6px;">(${item.missingText})</span>`;
+                }
+            }
+
+            html += `<li style="margin-bottom: 4px;"><span style="color: #4b5563;">${item.label}:</span> <span style="font-weight: 700; color: #111827; margin-left: 4px;">${item.value}</span>${icon}${missingHtml}</li>`;
         });
         
         html += `</ul></div>`;
@@ -338,160 +369,256 @@ document.addEventListener('DOMContentLoaded', () => {
     const reqData = {
         "j1s1": {
             title: "Jaar 1 - Semester 1 (Propedeuse Prod & Dev 1)",
-            vaardigheden: ["4 van 10 op niveau 1 (KPM is onderdeel hiervan)"],
-            hboi: ["Wordt opgeteld in Semester 2"],
             check: (v, h) => {
-                const v1 = Object.values(v).filter(l => l >= 1).length;
+                const v1_total = Object.values(v).filter(l => l >= 1).length;
                 const kpm = v['kwalitatief product maken'] >= 1;
                 return {
-                    vaardigheden: { isPassed: v1 >= 4 && kpm, items: buildItems(v, 1) },
+                    vaardigheden: { 
+                        isPassed: v1_total >= 4 && kpm, 
+                        items: [
+                            { label: 'Op niveau 1', value: v1_total, target: 4, isPassed: v1_total >= 4, missingText: v1_total < 4 ? `mist er ${4 - v1_total}` : '' },
+                            { label: 'Kwalitatief Product Maken ≥ 1', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                        ]
+                    },
                     hboi: { isInfo: true, text: 'Wordt opgeteld in Semester 2' }
                 };
             }
         },
         "j1s2": {
             title: "Jaar 1 - Semester 2 (Propedeuse Prod & Dev 2)",
-            vaardigheden: [
-                "7 op niveau 1 (waarin KPM op 1)",
-                "2 op start"
-            ],
-            hboi: ["4 op niveau 1 (opgeteld met sem 1)"],
             check: (v, h) => {
-                const v0 = Object.values(v).filter(l => l >= 0).length; // 0 is start
-                const v1 = Object.values(v).filter(l => l >= 1).length;
-                const h1 = Object.values(h).filter(l => l >= 1).length;
+                const v0_exact = Object.values(v).filter(l => l === 0).length; // 0 is start
+                const v0_total = Object.values(v).filter(l => l >= 0).length;
+                const v1_total = Object.values(v).filter(l => l >= 1).length;
+                const h1_total = Object.values(h).filter(l => l >= 1).length;
+                
+                const v1_surplus = Math.max(0, v1_total - 7);
+                const v0_eff = v0_exact + v1_surplus;
+                
                 const kpm = v['kwalitatief product maken'] >= 1;
                 return {
-                    vaardigheden: { isPassed: v1 >= 7 && kpm && v0 >= 9, items: buildItems(v, 1) },
-                    hboi: { isPassed: h1 >= 4, items: buildItems(h) }
+                    vaardigheden: { 
+                        isPassed: v1_total >= 7 && kpm && v0_total >= 9, 
+                        items: [
+                            { label: 'Op niveau 1', value: v1_total, target: 7, isPassed: v1_total >= 7, missingText: v1_total < 7 ? `mist er ${7 - v1_total}` : '' },
+                            { label: 'Op start niveau', value: v0_exact, target: 2, isPassed: v0_eff >= 2, missingText: v0_eff < 2 ? `mist er ${2 - v0_eff}` : '' },
+                            { label: 'Kwalitatief Product Maken ≥ 1', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                        ]
+                    },
+                    hboi: { 
+                        isPassed: h1_total >= 4, 
+                        items: [
+                            { label: 'Op niveau 1', value: h1_total, target: 4, isPassed: h1_total >= 4, missingText: h1_total < 4 ? `mist er ${4 - h1_total}` : '' }
+                        ]
+                    }
                 };
             }
         },
         "j2s1": {
             title: "Jaar 2 - Semester 1 (Open Projecten 1)",
-            vaardigheden: [
-                "3 op niveau 2",
-                "6 op niveau 1 (waarin KPM op 1)"
-            ],
-            hboi: ["6 op niveau 1"],
             check: (v, h) => {
-                const v1 = Object.values(v).filter(l => l >= 1).length;
-                const v2 = Object.values(v).filter(l => l >= 2).length;
-                const h1 = Object.values(h).filter(l => l >= 1).length;
+                const v1_exact = Object.values(v).filter(l => l === 1).length;
+                const v1_total = Object.values(v).filter(l => l >= 1).length;
+                const v2_total = Object.values(v).filter(l => l >= 2).length;
+                const h1_total = Object.values(h).filter(l => l >= 1).length;
+                
+                const v2_surplus = Math.max(0, v2_total - 3);
+                const v1_eff = v1_exact + v2_surplus;
+                
                 const kpm = v['kwalitatief product maken'] >= 1;
                 return {
-                    vaardigheden: { isPassed: v2 >= 3 && v1 >= 9 && kpm, items: buildItems(v, 1) },
-                    hboi: { isPassed: h1 >= 6, items: buildItems(h) }
+                    vaardigheden: { 
+                        isPassed: v2_total >= 3 && v1_total >= 9 && kpm, 
+                        items: [
+                            { label: 'Op niveau 2', value: v2_total, target: 3, isPassed: v2_total >= 3, missingText: v2_total < 3 ? `mist er ${3 - v2_total}` : '' },
+                            { label: 'Op niveau 1', value: v1_exact, target: 6, isPassed: v1_eff >= 6, missingText: v1_eff < 6 ? `mist er ${6 - v1_eff}` : '' },
+                            { label: 'Kwalitatief Product Maken ≥ 1', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                        ]
+                    },
+                    hboi: { 
+                        isPassed: h1_total >= 6, 
+                        items: [
+                            { label: 'Op niveau 1', value: h1_total, target: 6, isPassed: h1_total >= 6, missingText: h1_total < 6 ? `mist er ${6 - h1_total}` : '' }
+                        ]
+                    }
                 };
             }
         },
         "j2s2": {
             title: "Jaar 2 - Semester 2 (Open Projecten 2)",
-            vaardigheden: [
-                "7 op niveau 2 (waarin KPM op 2)",
-                "2 op niveau 1"
-            ],
-            hboi: [
-                "4 op niveau 2",
-                "2 op niveau 1 (opgeteld met sem 1)"
-            ],
             check: (v, h) => {
-                const v1 = Object.values(v).filter(l => l >= 1).length;
-                const v2 = Object.values(v).filter(l => l >= 2).length;
-                const h1 = Object.values(h).filter(l => l >= 1).length;
-                const h2 = Object.values(h).filter(l => l >= 2).length;
+                const v1_exact = Object.values(v).filter(l => l === 1).length;
+                const v1_total = Object.values(v).filter(l => l >= 1).length;
+                const v2_total = Object.values(v).filter(l => l >= 2).length;
+                const h1_exact = Object.values(h).filter(l => l === 1).length;
+                const h1_total = Object.values(h).filter(l => l >= 1).length;
+                const h2_total = Object.values(h).filter(l => l >= 2).length;
+                
+                const v2_surplus = Math.max(0, v2_total - 7);
+                const v1_eff = v1_exact + v2_surplus;
+                
+                const h2_surplus = Math.max(0, h2_total - 4);
+                const h1_eff = h1_exact + h2_surplus;
+                
                 const kpm = v['kwalitatief product maken'] >= 2;
                 return {
-                    vaardigheden: { isPassed: v2 >= 7 && v1 >= 9 && kpm, items: buildItems(v, 2) },
-                    hboi: { isPassed: h2 >= 4 && h1 >= 6, items: buildItems(h) }
+                    vaardigheden: { 
+                        isPassed: v2_total >= 7 && v1_total >= 9 && kpm, 
+                        items: [
+                            { label: 'Op niveau 2', value: v2_total, target: 7, isPassed: v2_total >= 7, missingText: v2_total < 7 ? `mist er ${7 - v2_total}` : '' },
+                            { label: 'Op niveau 1', value: v1_exact, target: 2, isPassed: v1_eff >= 2, missingText: v1_eff < 2 ? `mist er ${2 - v1_eff}` : '' },
+                            { label: 'Kwalitatief Product Maken ≥ 2', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                        ]
+                    },
+                    hboi: { 
+                        isPassed: h2_total >= 4 && h1_total >= 6, 
+                        items: [
+                            { label: 'Op niveau 2', value: h2_total, target: 4, isPassed: h2_total >= 4, missingText: h2_total < 4 ? `mist er ${4 - h2_total}` : '' },
+                            { label: 'Op niveau 1', value: h1_exact, target: 2, isPassed: h1_eff >= 2, missingText: h1_eff < 2 ? `mist er ${2 - h1_eff}` : '' }
+                        ]
+                    }
                 };
             }
         },
         "j3oi1": {
             title: "Jaar 3 - Open Innovation 1",
-            vaardigheden: [
-                "1 op niveau 3",
-                "8 op niveau 2 (waarin KPM op 2)"
-            ],
-            hboi: [
-                "1 op niveau 3",
-                "4 op niveau 2"
-            ],
             check: (v, h) => {
-                const v2 = Object.values(v).filter(l => l >= 2).length;
-                const v3 = Object.values(v).filter(l => l >= 3).length;
-                const h2 = Object.values(h).filter(l => l >= 2).length;
-                const h3 = Object.values(h).filter(l => l >= 3).length;
+                const v2_exact = Object.values(v).filter(l => l === 2).length;
+                const v2_total = Object.values(v).filter(l => l >= 2).length;
+                const v3_total = Object.values(v).filter(l => l >= 3).length;
+                const h2_exact = Object.values(h).filter(l => l === 2).length;
+                const h2_total = Object.values(h).filter(l => l >= 2).length;
+                const h3_total = Object.values(h).filter(l => l >= 3).length;
+                
+                const v3_surplus = Math.max(0, v3_total - 1);
+                const v2_eff = v2_exact + v3_surplus;
+                
+                const h3_surplus = Math.max(0, h3_total - 1);
+                const h2_eff = h2_exact + h3_surplus;
+
                 const kpm = v['kwalitatief product maken'] >= 2;
                 return {
-                    vaardigheden: { isPassed: v3 >= 1 && v2 >= 9 && kpm, items: buildItems(v, 2) },
-                    hboi: { isPassed: h3 >= 1 && h2 >= 5, items: buildItems(h) }
+                    vaardigheden: { 
+                        isPassed: v3_total >= 1 && v2_total >= 9 && kpm, 
+                        items: [
+                            { label: 'Op niveau 3', value: v3_total, target: 1, isPassed: v3_total >= 1, missingText: v3_total < 1 ? `mist er ${1 - v3_total}` : '' },
+                            { label: 'Op niveau 2', value: v2_exact, target: 8, isPassed: v2_eff >= 8, missingText: v2_eff < 8 ? `mist er ${8 - v2_eff}` : '' },
+                            { label: 'Kwalitatief Product Maken ≥ 2', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                        ]
+                    },
+                    hboi: { 
+                        isPassed: h3_total >= 1 && h2_total >= 5, 
+                        items: [
+                            { label: 'Op niveau 3', value: h3_total, target: 1, isPassed: h3_total >= 1, missingText: h3_total < 1 ? `mist er ${1 - h3_total}` : '' },
+                            { label: 'Op niveau 2', value: h2_exact, target: 4, isPassed: h2_eff >= 4, missingText: h2_eff < 4 ? `mist er ${4 - h2_eff}` : '' }
+                        ]
+                    }
                 };
             }
         },
         "j3oi2": {
             title: "Jaar 3/4 - Open Innovation 2",
-            vaardigheden: [
-                "3 op niveau 3 (waarin KPM op 3)",
-                "6 op niveau 2"
-            ],
-            hboi: [
-                "2 op niveau 3",
-                "4 op niveau 2 (opgeteld met vorige OI semesters)"
-            ],
             check: (v, h) => {
-                const v2 = Object.values(v).filter(l => l >= 2).length;
-                const v3 = Object.values(v).filter(l => l >= 3).length;
-                const h2 = Object.values(h).filter(l => l >= 2).length;
-                const h3 = Object.values(h).filter(l => l >= 3).length;
+                const v2_exact = Object.values(v).filter(l => l === 2).length;
+                const v2_total = Object.values(v).filter(l => l >= 2).length;
+                const v3_total = Object.values(v).filter(l => l >= 3).length;
+                const h2_exact = Object.values(h).filter(l => l === 2).length;
+                const h2_total = Object.values(h).filter(l => l >= 2).length;
+                const h3_total = Object.values(h).filter(l => l >= 3).length;
+                
+                const v3_surplus = Math.max(0, v3_total - 3);
+                const v2_eff = v2_exact + v3_surplus;
+                
+                const h3_surplus = Math.max(0, h3_total - 2);
+                const h2_eff = h2_exact + h3_surplus;
+
                 const kpm = v['kwalitatief product maken'] >= 3;
                 return {
-                    vaardigheden: { isPassed: v3 >= 3 && v2 >= 9 && kpm, items: buildItems(v, 3) },
-                    hboi: { isPassed: h3 >= 2 && h2 >= 6, items: buildItems(h) }
+                    vaardigheden: { 
+                        isPassed: v3_total >= 3 && v2_total >= 9 && kpm, 
+                        items: [
+                            { label: 'Op niveau 3', value: v3_total, target: 3, isPassed: v3_total >= 3, missingText: v3_total < 3 ? `mist er ${3 - v3_total}` : '' },
+                            { label: 'Op niveau 2', value: v2_exact, target: 6, isPassed: v2_eff >= 6, missingText: v2_eff < 6 ? `mist er ${6 - v2_eff}` : '' },
+                            { label: 'Kwalitatief Product Maken ≥ 3', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                        ]
+                    },
+                    hboi: { 
+                        isPassed: h3_total >= 2 && h2_total >= 6, 
+                        items: [
+                            { label: 'Op niveau 3', value: h3_total, target: 2, isPassed: h3_total >= 2, missingText: h3_total < 2 ? `mist er ${2 - h3_total}` : '' },
+                            { label: 'Op niveau 2', value: h2_exact, target: 4, isPassed: h2_eff >= 4, missingText: h2_eff < 4 ? `mist er ${4 - h2_eff}` : '' }
+                        ]
+                    }
                 };
             }
         },
         "j3oi3": {
             title: "Jaar 3/4 - Open Innovation 3",
-            vaardigheden: [
-                "5 op niveau 3 (waarin KPM op 3)",
-                "4 op niveau 2"
-            ],
-            hboi: [
-                "2 op niveau 3",
-                "4 op niveau 2 (opgeteld met vorige OI semesters)"
-            ],
             check: (v, h) => {
-                const v2 = Object.values(v).filter(l => l >= 2).length;
-                const v3 = Object.values(v).filter(l => l >= 3).length;
-                const h2 = Object.values(h).filter(l => l >= 2).length;
-                const h3 = Object.values(h).filter(l => l >= 3).length;
+                const v2_exact = Object.values(v).filter(l => l === 2).length;
+                const v2_total = Object.values(v).filter(l => l >= 2).length;
+                const v3_total = Object.values(v).filter(l => l >= 3).length;
+                const h2_exact = Object.values(h).filter(l => l === 2).length;
+                const h2_total = Object.values(h).filter(l => l >= 2).length;
+                const h3_total = Object.values(h).filter(l => l >= 3).length;
+                
+                const v3_surplus = Math.max(0, v3_total - 5);
+                const v2_eff = v2_exact + v3_surplus;
+                
+                const h3_surplus = Math.max(0, h3_total - 2);
+                const h2_eff = h2_exact + h3_surplus;
+
                 const kpm = v['kwalitatief product maken'] >= 3;
                 return {
-                    vaardigheden: { isPassed: v3 >= 5 && v2 >= 9 && kpm, items: buildItems(v, 3) },
-                    hboi: { isPassed: h3 >= 2 && h2 >= 6, items: buildItems(h) }
+                    vaardigheden: { 
+                        isPassed: v3_total >= 5 && v2_total >= 9 && kpm, 
+                        items: [
+                            { label: 'Op niveau 3', value: v3_total, target: 5, isPassed: v3_total >= 5, missingText: v3_total < 5 ? `mist er ${5 - v3_total}` : '' },
+                            { label: 'Op niveau 2', value: v2_exact, target: 4, isPassed: v2_eff >= 4, missingText: v2_eff < 4 ? `mist er ${4 - v2_eff}` : '' },
+                            { label: 'Kwalitatief Product Maken ≥ 3', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                        ]
+                    },
+                    hboi: { 
+                        isPassed: h3_total >= 2 && h2_total >= 6, 
+                        items: [
+                            { label: 'Op niveau 3', value: h3_total, target: 2, isPassed: h3_total >= 2, missingText: h3_total < 2 ? `mist er ${2 - h3_total}` : '' },
+                            { label: 'Op niveau 2', value: h2_exact, target: 4, isPassed: h2_eff >= 4, missingText: h2_eff < 4 ? `mist er ${4 - h2_eff}` : '' }
+                        ]
+                    }
                 };
             }
         },
         "j4s2": {
             title: "Jaar 4 - Afstuderen",
-            vaardigheden: ["Minimaal op niveau (Vakbekwaamheid, Onderzoekend, Interactie, Organiserend, Zelflerend vermogen)"],
             check: (v, h) => {
-                const reqs = ['vakbekwaamheid', 'onderzoekend vermogen', 'interactie', 'organiserend vermogen', 'zelflerend vermogen'];
-                let missing = [];
+                const reqs = ['vakbekwaamheid', 'onderzoekend', 'interactief', 'organiserend', 'lerend'];
+                let items = [];
+                let allPassed = true;
+                
                 reqs.forEach(r => {
-                    let rKey = Object.keys(v).find(k => k.includes(r));
-                    if (!rKey || v[rKey] < 3) {
-                        missing.push(r.split(' ')[0]);
+                    let rKey = Object.keys(h).find(k => k.includes(r));
+                    let val = rKey ? h[rKey] : 0;
+                    let isPassed = val >= 3; // level 3 is normally minimum level for graduation
+                    
+                    let textVal = 'Geen';
+                    if (val === 4) textVal = 'Boven niveau';
+                    else if (val === 3) textVal = 'Op niveau';
+                    else if (val > 0) textVal = 'Nog niet op niveau';
+                    
+                    if (!isPassed) {
+                        allPassed = false;
                     }
+                    items.push({
+                        label: r.charAt(0).toUpperCase() + r.slice(1),
+                        value: textVal,
+                        isBooleanTarget: true,
+                        isPassed: isPassed,
+                        missingText: !isPassed ? 'vereist' : ''
+                    });
                 });
                 
-                let isPassed = missing.length === 0;
-                let items = [{ label: 'Kernvaardigheden op niveau', value: isPassed ? 'Ja' : 'Nee' }];
-                if (!isPassed) items.push({ label: 'Ontbrekend/Onvoldoende', value: missing.join(', ') });
-                
                 return {
-                    vaardigheden: { isPassed: isPassed, items: items }
+                    vaardigheden: { isPassed: allPassed, items: items }
                 };
             }
         }
@@ -526,6 +653,13 @@ document.addEventListener('DOMContentLoaded', () => {
         exportResults = [];
         resultsContainer.innerHTML = '';
         
+        // Define the expected order of Vaardigheden (Product, Social, Personal)
+        const vaardighedenOrder = [
+            'overzicht creëren', 'kritisch oordelen', 'juiste kennis ontwikkelen', 'kwalitatief product maken',
+            'plannen', 'boodschap delen', 'samenwerken',
+            'flexibel opstellen', 'pro-actief handelen', 'reflecteren'
+        ];
+
         let processedCount = 0;
         showLoading(`Starting export... (0/${studentNames.length})`);
 
@@ -563,6 +697,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!res.ok) throw new Error(data.error || 'Export failed');
 
                 if (data.results && data.results.length > 0) {
+                    data.results.forEach(r => {
+                        const gl = r.goal_name.toLowerCase();
+                        const isV = vaardighedenOrder.some(v => gl.includes(v));
+                        if (!isV) {
+                            // Strip trailing numbers and whitespace for HBO-i goals
+                            r.goal_name = r.goal_name.replace(/\s+\d+$/, '');
+                        }
+                    });
+
                     exportResults.push(...data.results);
                     
                     // Group results by goal for this student
@@ -603,13 +746,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         return maxDateB - maxDateA;
                     });
 
-                    // Define the expected order of Vaardigheden (Product, Social, Personal)
-                    const vaardighedenOrder = [
-                        'overzicht creëren', 'kritisch oordelen', 'juiste kennis ontwikkelen', 'kwalitatief product maken',
-                        'plannen', 'boodschap delen', 'samenwerken',
-                        'flexibel opstellen', 'pro-actief handelen', 'reflecteren'
-                    ];
-
                     const studentDiv = document.createElement('div');
                     studentDiv.className = 'student-result-card';
                     
@@ -640,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // We will print the collection name per cycle instead of once here
                         const allGoalsList = [...new Set(collectionResults.map(r => r.goal_name))];
                         const vGoals = [];
-                        const hGoals = [];
+                        let hGoals = [];
 
                         allGoalsList.forEach(g => {
                             const gl = g.toLowerCase();
@@ -677,7 +813,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                     evals: {}
                                 };
                             }
-                            sessionsMap[key].evals[r.goal_name] = r;
+                            
+                            if (!sessionsMap[key].evals[r.goal_name]) {
+                                sessionsMap[key].evals[r.goal_name] = r;
+                            } else {
+                                const existingEval = parseInt(sessionsMap[key].evals[r.goal_name].evaluation);
+                                const newEval = parseInt(r.evaluation);
+                                if (!isNaN(newEval) && !isNaN(existingEval) && newEval > existingEval) {
+                                    sessionsMap[key].evals[r.goal_name] = r;
+                                }
+                            }
                         });
 
                         const sortedSessions = Object.values(sessionsMap).sort((a, b) => {
@@ -716,7 +861,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         // Reusable function to build a table
-                        const buildTable = (title, goalList, cycleSessions) => {
+                        const buildTable = (title, goalList, cycleSessions, containerDiv) => {
+                            const targetDiv = containerDiv || studentDiv;
                             if (goalList.length === 0) return;
 
                             // Only show sessions that have at least one evaluation in this table
@@ -731,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             sectionTitle.style.marginTop = '1rem';
                             sectionTitle.style.marginBottom = '0.5rem';
                             sectionTitle.style.color = 'var(--text-secondary)';
-                            studentDiv.appendChild(sectionTitle);
+                            targetDiv.appendChild(sectionTitle);
 
                             const table = document.createElement('table');
                             table.className = 'student-result-table';
@@ -803,7 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             tableContainer.style.maxWidth = '100%';
                             tableContainer.appendChild(table);
                             
-                            studentDiv.appendChild(tableContainer);
+                            targetDiv.appendChild(tableContainer);
                         };
                         // Reverse cycles so most recent is at top
                         cycles.reverse();
@@ -849,10 +995,37 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { val: 'j4s2', text: 'Jaar 4 - Afstuderen' }
                             ];
                             
+                            // Auto-detect semester from collection name
+                            let autoSelectVal = 'none';
+                            const tName = collectionName.toLowerCase();
+                            if (tName.includes('afstuderen')) autoSelectVal = 'j4s2';
+                            else if (tName.includes('open innovation 3') || tName.includes('oi3') || tName.includes('oi 3')) autoSelectVal = 'j3oi3';
+                            else if (tName.includes('open innovation 2') || tName.includes('oi2') || tName.includes('oi 2')) autoSelectVal = 'j3oi2';
+                            else if (tName.includes('open innovation') || tName.includes('oi1') || tName.includes('oi 1')) autoSelectVal = 'j3oi1';
+                            else if (tName.includes('open projecten')) {
+                                if (tName.includes('semester 2') || tName.includes(' 2') || tName.includes('deel 2')) autoSelectVal = 'j2s2';
+                                else autoSelectVal = 'j2s1';
+                            } else if (tName.includes('propedeuse') || tName.includes('prod & dev') || tName.includes('prod en dev')) {
+                                if (tName.includes('semester 2') || tName.includes(' 2')) autoSelectVal = 'j1s2';
+                                else autoSelectVal = 'j1s1';
+                            } else if (tName.includes('jaar 1') || tName.includes('year 1')) {
+                                if (tName.includes('semester 2')) autoSelectVal = 'j1s2';
+                                else autoSelectVal = 'j1s1';
+                            } else if (tName.includes('jaar 2') || tName.includes('year 2')) {
+                                if (tName.includes('semester 2')) autoSelectVal = 'j2s2';
+                                else autoSelectVal = 'j2s1';
+                            } else {
+                                if (tName.includes('semester 2')) autoSelectVal = 'j1s2'; // generic fallback
+                                else if (tName.includes('semester 1')) autoSelectVal = 'j1s1';
+                            }
+                            
                             options.forEach(opt => {
                                 const o = document.createElement('option');
                                 o.value = opt.val;
                                 o.textContent = opt.text;
+                                if (opt.val === autoSelectVal) {
+                                    o.selected = true;
+                                }
                                 select.appendChild(o);
                             });
                             
@@ -887,7 +1060,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                             let assessmentLevel = -1;
                                             cycleSessions.forEach(s => {
                                                 if (s.evals[g]) {
-                                                    const v = parseInt(s.evals[g].evaluation);
+                                                    let v = parseInt(s.evals[g].evaluation);
+                                                    if (isNaN(v)) {
+                                                        const evStr = s.evals[g].evaluation.toString().toLowerCase();
+                                                        if (evStr.includes('boven niveau')) v = 4;
+                                                        else if (evStr.includes('nog niet op niveau')) v = 2;
+                                                        else if (evStr.includes('op niveau')) v = 3;
+                                                    }
                                                     if (!isNaN(v)) {
                                                         maxLevel = Math.max(maxLevel, v);
                                                         if (s.isAssessment) assessmentLevel = v;
@@ -903,10 +1082,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                             let assessmentLevel = -1;
                                             cycleSessions.forEach(s => {
                                                 if (s.evals[g]) {
-                                                    const v = parseInt(s.evals[g].evaluation);
+                                                    let v = parseInt(s.evals[g].evaluation);
+                                                    if (isNaN(v)) {
+                                                        const evStr = s.evals[g].evaluation.toString().toLowerCase();
+                                                        if (evStr.includes('boven niveau')) v = 4;
+                                                        else if (evStr.includes('nog niet op niveau')) v = 2;
+                                                        else if (evStr.includes('op niveau')) v = 3;
+                                                    }
                                                     if (!isNaN(v)) {
-                                                        maxLevel = Math.max(maxLevel, v);
-                                                        if (s.isAssessment) assessmentLevel = v;
+                                                        if (s.isAssessment) {
+                                                            assessmentLevel = v;
+                                                        } else {
+                                                            maxLevel = Math.max(maxLevel, v);
+                                                        }
                                                     }
                                                 }
                                             });
@@ -916,24 +1104,52 @@ document.addEventListener('DOMContentLoaded', () => {
                                         
                                         const checkRes = req.check(vLevels, hLevels);
                                         
-                                        // Left side: Requirements text
-                                        let textHtml = `<div style="margin-bottom: 1rem;"><strong>Nodig voor ${req.title}:</strong></div>`;
-                                        
-                                        if (req.vaardigheden && req.vaardigheden.length > 0) {
-                                            textHtml += `<div style="margin-bottom: 0.75rem;">
-                                                <div style="font-weight: 600; font-size: 0.95em; color: #4b5563;">Vaardigheden:</div>
-                                                <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; line-height: 1.5;">
-                                                    ${req.vaardigheden.map(r => `<li>${r}</li>`).join('')}
-                                                </ul>
-                                            </div>`;
+                                        if (req.id !== 'j4s2') {
+                                            ['vaardigheden', 'hboi'].forEach(domain => {
+                                                let section = checkRes[domain];
+                                                if (!section || section.isInfo) return;
+                                                
+                                                let map = domain === 'vaardigheden' ? vLevels : hLevels;
+                                                
+                                                section.items.forEach(item => {
+                                                    let match = item.label.match(/Op niveau (\d)/);
+                                                    if (match) {
+                                                        let lvl = parseInt(match[1]);
+                                                        item.value = Object.values(map).filter(l => l === lvl).length;
+                                                    } else if (item.label === 'Op start niveau') {
+                                                        item.value = Object.values(map).filter(l => l === 0).length;
+                                                    }
+                                                });
+                                
+                                                let newItems = [];
+                                                [3, 2, 1, 0].forEach(lvl => {
+                                                    let label = lvl === 0 ? 'Op start niveau' : `Op niveau ${lvl}`;
+                                                    let existingItem = section.items.find(i => i.label === label);
+                                                    let count = Object.values(map).filter(l => l === lvl).length;
+                                                    
+                                                    if (existingItem) {
+                                                        newItems.push(existingItem);
+                                                    } else if (count > 0) {
+                                                        newItems.push({ label: label, value: count });
+                                                    }
+                                                });
+                                                
+                                                section.items.forEach(item => {
+                                                    if (!item.label.startsWith('Op niveau') && item.label !== 'Op start niveau') {
+                                                        newItems.push(item);
+                                                    }
+                                                });
+                                                
+                                                section.items = newItems;
+                                            });
                                         }
-                                        if (req.hboi && req.hboi.length > 0) {
-                                            textHtml += `<div>
-                                                <div style="font-weight: 600; font-size: 0.95em; color: #4b5563;">HBO-i:</div>
-                                                <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; line-height: 1.5;">
-                                                    ${req.hboi.map(r => `<li>${r}</li>`).join('')}
-                                                </ul>
-                                            </div>`;
+                                        let textHtml = '';
+                                        
+                                        if (checkRes.vaardigheden) {
+                                            textHtml += buildRequirementsSection('Vaardigheden', checkRes.vaardigheden);
+                                        }
+                                        if (checkRes.hboi) {
+                                            textHtml += buildRequirementsSection('HBO-i', checkRes.hboi);
                                         }
 
                                         // Right side: Results
@@ -947,11 +1163,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                         let layoutHtml = `<div style="display: flex; gap: 2rem; flex-wrap: wrap;">
                                             <div style="flex: 1; min-width: 280px; padding: 1.25rem; background: rgba(255, 255, 255, 0.4); border-radius: 8px;">
-                                                <div style="font-weight: 700; color: #3730a3; margin-bottom: 0.75rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; border-bottom: 1px solid rgba(55, 48, 163, 0.2); padding-bottom: 0.5rem;">Eis vanuit School</div>
-                                                <div style="line-height: 1.6; color: #3730a3;">${textHtml}</div>
+                                                <div style="font-weight: 700; color: #3730a3; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; border-bottom: 1px solid rgba(55, 48, 163, 0.2); padding-bottom: 0.5rem;">Nodig voor ${req.title}</div>
+                                                ${textHtml}
                                             </div>
-                                            <div style="flex: 1; min-width: 280px; background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;">
-                                                <div style="font-weight: 700; color: #3730a3; margin-bottom: 0.75rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; border-bottom: 1px solid rgba(55, 48, 163, 0.2); padding-bottom: 0.5rem;">Huidige Status Student</div>
+                                            <div style="flex: 1; min-width: 280px; padding: 1.25rem; background: rgba(255, 255, 255, 0.9); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                                <div style="font-weight: 700; color: #3730a3; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; border-bottom: 1px solid rgba(55, 48, 163, 0.2); padding-bottom: 0.5rem;">Huidige Status Student</div>
                                                 ${resultsHtml}
                                                 <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); font-size: 0.8em; color: #6b7280; font-style: italic;">
                                                     * Let op: Dit is een benadering. Het uiteindelijke niveau wordt holistisch bepaald tijdens het assessment op basis van het gehele semester.
@@ -963,14 +1179,56 @@ document.addEventListener('DOMContentLoaded', () => {
                                         reqTextDiv.classList.remove('hidden');
                                     }
                                 }
+                                
+                                if (typeof updateTables === 'function') {
+                                    updateTables(val);
+                                }
                             });
+                            
+                            if (autoSelectVal !== 'none') {
+                                setTimeout(() => select.dispatchEvent(new Event('change')), 10);
+                            }
                             
                             studentDiv.appendChild(cycleHeader);
                             studentDiv.appendChild(reqContainer);
                             studentDiv.appendChild(reqTextDiv);
                             
-                            buildTable('Vaardigheden', vGoals, cycleSessions);
-                            buildTable('HBO-i', hGoals, cycleSessions);
+                            const tablesWrapper = document.createElement('div');
+                            studentDiv.appendChild(tablesWrapper);
+
+                            var updateTables = (selectedVal) => {
+                                tablesWrapper.innerHTML = '';
+                                let currentHTitle = 'HBO-i';
+                                let currentHGoals = [...hGoals];
+
+                                const gradKeywords = ['vakbekwaamheid', 'onderzoekend', 'interactie', 'interactief', 'organiserend', 'lerend'];
+                                
+                                if (selectedVal === 'j4s2') {
+                                    const hasGraduationGoals = currentHGoals.some(g => {
+                                        const gl = g.toLowerCase();
+                                        return gradKeywords.some(kw => gl.includes(kw)) && !gl.includes('gebruikersinteractie');
+                                    });
+
+                                    if (hasGraduationGoals) {
+                                        currentHTitle = 'Leeruitkomsten';
+                                        currentHGoals = currentHGoals.filter(g => {
+                                            const gl = g.toLowerCase();
+                                            return gradKeywords.some(kw => gl.includes(kw)) && !gl.includes('gebruikersinteractie');
+                                        });
+                                    }
+                                } else {
+                                    currentHGoals = currentHGoals.filter(g => {
+                                        const gl = g.toLowerCase();
+                                        const isGradGoal = gradKeywords.some(kw => gl.includes(kw)) && !gl.includes('gebruikersinteractie');
+                                        return !isGradGoal;
+                                    });
+                                }
+
+                                buildTable('Vaardigheden', vGoals, cycleSessions, tablesWrapper);
+                                buildTable(currentHTitle, currentHGoals, cycleSessions, tablesWrapper);
+                            };
+                            
+                            updateTables(autoSelectVal);
                             
                             // Add separator if it's not the absolute last cycle of the last collection
                             if (idx < cycles.length - 1 || collIndex < sortedCollections.length - 1) {
