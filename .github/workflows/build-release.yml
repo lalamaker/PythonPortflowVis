@@ -25,14 +25,14 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build EXE (minimal)
-        run: pyinstaller --onefile --name "PortflowExport" --icon=NONE portflow_export.py
+        run: pyinstaller --onefile --add-data "portflow_exporter/templates;templates" --add-data "portflow_exporter/static;static" --name "PortflowExport" --icon=NONE portflow_export.py
 
       - name: Install TUI dependencies
         run: |
           pip install -r requirements-tui.txt
 
       - name: Build EXE (TUI)
-        run: pyinstaller --onefile --name "PortflowExport_TUI" --icon=NONE --hidden-import questionary --hidden-import prompt_toolkit --hidden-import wcwidth portflow_export.py
+        run: pyinstaller --onefile --add-data "portflow_exporter/templates;templates" --add-data "portflow_exporter/static;static" --name "PortflowExport_TUI" --icon=NONE --hidden-import questionary --hidden-import prompt_toolkit --hidden-import wcwidth portflow_export.py
 
       - name: Zip EXEs
         shell: pwsh
