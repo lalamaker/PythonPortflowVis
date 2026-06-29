@@ -759,11 +759,11 @@ function buildStatusSection(title, sectionData) {
                         });
                     });
 
-                    // Group results by collection (using portfolio_id to separate distinct portfolios even if they share the same template name)
+                    // Group results by collection
                     const collectionsMap = {};
                     data.results.forEach(r => {
-                        const collId = r.portfolio_id || r.collection_name; // Fallback to name if id is missing
                         const collName = (r.collection_name && r.collection_name !== 'Unknown') ? r.collection_name : 'Overige Evaluaties';
+                        const collId = r.portfolio_id ? `${r.portfolio_id}_${collName}` : collName;
                         
                         if (!collectionsMap[collId]) {
                             collectionsMap[collId] = {
@@ -1034,11 +1034,12 @@ function buildStatusSection(title, sectionData) {
                             let autoSelectVal = 'none';
                             const tName = collectionName.toLowerCase();
                             if (tName.includes('afstuderen')) autoSelectVal = 'j4s2';
-                            else if (tName.includes('open innovation 3') || tName.includes('oi3') || tName.includes('oi 3')) autoSelectVal = 'j3oi3';
-                            else if (tName.includes('open innovation 2') || tName.includes('oi2') || tName.includes('oi 2')) autoSelectVal = 'j3oi2';
-                            else if (tName.includes('open innovation') || tName.includes('oi1') || tName.includes('oi 1')) autoSelectVal = 'j3oi1';
-                            else if (tName.includes('open projecten')) {
-                                if (tName.includes('semester 2') || tName.includes(' 2') || tName.includes('deel 2')) autoSelectVal = 'j2s2';
+                            else if (tName.includes('open innovation 3') || tName.includes('open innovatie 3') || tName.includes('oi3') || tName.includes('oi 3') || (tName.includes('open innovatie') && tName.includes('semester 3'))) autoSelectVal = 'j3oi3';
+                            else if (tName.includes('open innovation 2') || tName.includes('open innovatie 2') || tName.includes('oi2') || tName.includes('oi 2') || (tName.includes('open innovatie') && tName.includes('semester 2'))) autoSelectVal = 'j3oi2';
+                            else if (tName.includes('open innovation') || tName.includes('open innovatie') || tName.includes('oi1') || tName.includes('oi 1')) autoSelectVal = 'j3oi1';
+                            else if (tName.includes('open projecten') || tName.includes('open project')) {
+                                if (tName.includes('semester 4') || tName.includes(' 4') || tName.includes('deel 2')) autoSelectVal = 'j2s2';
+                                else if (tName.includes('semester 2') || tName.includes(' 2')) autoSelectVal = 'j2s2';
                                 else autoSelectVal = 'j2s1';
                             } else if (tName.includes('propedeuse') || tName.includes('prod & dev') || tName.includes('prod en dev')) {
                                 if (tName.includes('semester 2') || tName.includes(' 2')) autoSelectVal = 'j1s2';

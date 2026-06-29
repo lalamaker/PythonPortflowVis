@@ -178,6 +178,16 @@ def get_students_from_section(token: str, section_id: str) -> Union[dict, str, N
     print(f"Found {len(students)} students.")
     return students
 
+def get_portfolio(token: str, portfolio_id: str) -> Union[dict, str, None]:
+    headers = {"accept": "*/*", "authorization": f"Bearer {token}"}
+    response = request_with_retries(
+        f"{BASE_URL}/portfolios/{portfolio_id}",
+        headers,
+    )
+    if response in (None, TokenExpired, NotFound):
+        return response
+    return response.json()
+
 
 def get_goals(token: str, portfolio_id: str) -> Union[List[dict], str, None]:
     headers = {"accept": "*/*", "authorization": f"Bearer {token}"}
@@ -188,6 +198,7 @@ def get_goals(token: str, portfolio_id: str) -> Union[List[dict], str, None]:
     )
     if response in (None, TokenExpired, NotFound):
         return response
+    
     return response.json()
 
 

@@ -15,9 +15,17 @@ def extract_students(shared_items: List[dict]) -> Dict[str, dict]:
 
         name = inviter["name"]
         portfolio_id = item["portfolio_id"]
-
-        students.setdefault(name, {"student_id": inviter["id"], "portfolio_ids": set()})
+        
+        students.setdefault(name, {"student_id": inviter["id"], "portfolio_ids": set(), "collection_names": {}})
         students[name]["portfolio_ids"].add(portfolio_id)
+
+        collections = item.get("collections", [])
+        if collections and isinstance(collections, list):
+            for coll in collections:
+                import_id = coll.get("import_id")
+                coll_name = coll.get("name")
+                if import_id and coll_name:
+                    students[name]["collection_names"][str(import_id)] = coll_name
 
     return students
 
@@ -43,7 +51,11 @@ def collect_results(
 ) -> Union[List[dict], str]:
     results: List[dict] = []
 
+    seen_evals = set()
+
     for portfolio_id in student_data["portfolio_ids"]:
+        collection_names = student_data.get("collection_names", {})
+
         goals = api.get_goals(token, portfolio_id)
 
         if goals == api.TokenExpired:
@@ -57,10 +69,15 @@ def collect_results(
             continue
 
         for goal in goals:
-            goal_id = goal["id"]
-            goal_name = goal["name"]
+            goal_name = goal.get("name") or "onbekende vaardigheid"
+            goal_import_id = str(goal.get("import_id")) if goal.get("import_id") else None
+            
+            if goal_import_id and goal_import_id in collection_names:
+                collection_name_override = collection_names[goal_import_id]
+            else:
+                collection_name_override = goal.get("imported_template_name") or "Unknown"
 
-            feedback_items = api.get_feedback(token, portfolio_id, goal_id)
+            feedback_items = api.get_feedback(token, portfolio_id, goal.get("id"))
             if feedback_items == api.TokenExpired:
                 return api.TokenExpired
 
@@ -90,9 +107,16 @@ def collect_results(
                     "goal_name": actual_goal_name, 
                     "evaluation": level,
                     "date": ts.isoformat() if ts else None,
-                    "collection_name": goal.get("imported_template_name") or "Unknown",
-                    "portfolio_id": portfolio_id
+                    "collection_name": collection_name_override,
+                    "portfolio_id": goal_import_id or portfolio_id
                 }
+                
+                # Deduplicate identical evaluations from multiple portfolio shares
+                eval_key = (student_name, actual_goal_name, level, result["date"], collection_name_override)
+                if eval_key in seen_evals:
+                    continue
+                seen_evals.add(eval_key)
+                
                 if include_reviewer:
                     reviewer = evaluation.get("reviewer", {})
                     result["reviewer_name"] = reviewer.get("name", "Unknown")
