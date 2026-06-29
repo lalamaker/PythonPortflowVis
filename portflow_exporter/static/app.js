@@ -376,8 +376,13 @@ function buildStatusSection(title, sectionData) {
                     vaardigheden: { 
                         isPassed: v1_total >= 4 && kpm, 
                         items: [
-                            { label: 'Op niveau 1', value: v1_total, target: 4, isPassed: v1_total >= 4, missingText: v1_total < 4 ? `mist er ${4 - v1_total}` : '' },
-                            { label: 'Kwalitatief Product Maken ≥ 1', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                            { 
+                                label: 'Op niveau 1 (inclusief KPM)', 
+                                value: v1_total, 
+                                target: 4, 
+                                isPassed: v1_total >= 4 && kpm, 
+                                missingText: (v1_total < 4 ? `mist er ${4 - v1_total}` : '') + (!kpm ? (v1_total < 4 ? ', ' : '') + 'KPM mist' : '') 
+                            }
                         ]
                     },
                     hboi: { isInfo: true, text: 'Wordt opgeteld in Semester 2' }
@@ -400,9 +405,14 @@ function buildStatusSection(title, sectionData) {
                     vaardigheden: { 
                         isPassed: v1_total >= 7 && kpm && v0_total >= 9, 
                         items: [
-                            { label: 'Op niveau 1', value: v1_total, target: 7, isPassed: v1_total >= 7, missingText: v1_total < 7 ? `mist er ${7 - v1_total}` : '' },
-                            { label: 'Op start niveau', value: v0_exact, target: 2, isPassed: v0_eff >= 2, missingText: v0_eff < 2 ? `mist er ${2 - v0_eff}` : '' },
-                            { label: 'Kwalitatief Product Maken ≥ 1', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                            { 
+                                label: 'Op niveau 1 (inclusief KPM)', 
+                                value: v1_total, 
+                                target: 7, 
+                                isPassed: v1_total >= 7 && kpm, 
+                                missingText: (v1_total < 7 ? `mist er ${7 - v1_total}` : '') + (!kpm ? (v1_total < 7 ? ', ' : '') + 'KPM mist' : '') 
+                            },
+                            { label: 'Op start niveau', value: v0_exact, target: 2, isPassed: v0_eff >= 2, missingText: v0_eff < 2 ? `mist er ${2 - v0_eff}` : '' }
                         ]
                     },
                     hboi: { 
@@ -431,8 +441,13 @@ function buildStatusSection(title, sectionData) {
                         isPassed: v2_total >= 3 && v1_total >= 9 && kpm, 
                         items: [
                             { label: 'Op niveau 2', value: v2_total, target: 3, isPassed: v2_total >= 3, missingText: v2_total < 3 ? `mist er ${3 - v2_total}` : '' },
-                            { label: 'Op niveau 1', value: v1_exact, target: 6, isPassed: v1_eff >= 6, missingText: v1_eff < 6 ? `mist er ${6 - v1_eff}` : '' },
-                            { label: 'Kwalitatief Product Maken ≥ 1', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                            { 
+                                label: 'Op niveau 1 (inclusief KPM)', 
+                                value: v1_exact, 
+                                target: 6, 
+                                isPassed: v1_eff >= 6 && kpm, 
+                                missingText: (v1_eff < 6 ? `mist er ${6 - v1_eff}` : '') + (!kpm ? (v1_eff < 6 ? ', ' : '') + 'KPM mist' : '') 
+                            }
                         ]
                     },
                     hboi: { 
@@ -454,7 +469,7 @@ function buildStatusSection(title, sectionData) {
                 const h1_total = Object.values(h).filter(l => l >= 1).length;
                 const h2_total = Object.values(h).filter(l => l >= 2).length;
                 
-                const v2_surplus = Math.max(0, v2_total - 7);
+                const v2_surplus = Math.max(0, v2_total - 8);
                 const v1_eff = v1_exact + v2_surplus;
                 
                 const h2_surplus = Math.max(0, h2_total - 4);
@@ -463,11 +478,16 @@ function buildStatusSection(title, sectionData) {
                 const kpm = v['kwalitatief product maken'] >= 2;
                 return {
                     vaardigheden: { 
-                        isPassed: v2_total >= 7 && v1_total >= 9 && kpm, 
+                        isPassed: v2_total >= 8 && v1_total >= 10 && kpm, 
                         items: [
-                            { label: 'Op niveau 2', value: v2_total, target: 7, isPassed: v2_total >= 7, missingText: v2_total < 7 ? `mist er ${7 - v2_total}` : '' },
-                            { label: 'Op niveau 1', value: v1_exact, target: 2, isPassed: v1_eff >= 2, missingText: v1_eff < 2 ? `mist er ${2 - v1_eff}` : '' },
-                            { label: 'Kwalitatief Product Maken ≥ 2', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                            { 
+                                label: 'Op niveau 2 (inclusief KPM)', 
+                                value: v2_total, 
+                                target: 8, 
+                                isPassed: v2_total >= 8 && kpm, 
+                                missingText: (v2_total < 8 ? `mist er ${8 - v2_total}` : '') + (!kpm ? (v2_total < 8 ? ', ' : '') + 'KPM mist' : '') 
+                            },
+                            { label: 'Op niveau 1', value: v1_exact, target: 2, isPassed: v1_eff >= 2, missingText: v1_eff < 2 ? `mist er ${2 - v1_eff}` : '' }
                         ]
                     },
                     hboi: { 
@@ -502,8 +522,13 @@ function buildStatusSection(title, sectionData) {
                         isPassed: v3_total >= 1 && v2_total >= 9 && kpm, 
                         items: [
                             { label: 'Op niveau 3', value: v3_total, target: 1, isPassed: v3_total >= 1, missingText: v3_total < 1 ? `mist er ${1 - v3_total}` : '' },
-                            { label: 'Op niveau 2', value: v2_exact, target: 8, isPassed: v2_eff >= 8, missingText: v2_eff < 8 ? `mist er ${8 - v2_eff}` : '' },
-                            { label: 'Kwalitatief Product Maken ≥ 2', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                            { 
+                                label: 'Op niveau 2 (inclusief KPM)', 
+                                value: v2_exact, 
+                                target: 8, 
+                                isPassed: v2_eff >= 8 && kpm, 
+                                missingText: (v2_eff < 8 ? `mist er ${8 - v2_eff}` : '') + (!kpm ? (v2_eff < 8 ? ', ' : '') + 'KPM mist' : '') 
+                            }
                         ]
                     },
                     hboi: { 
@@ -537,9 +562,14 @@ function buildStatusSection(title, sectionData) {
                     vaardigheden: { 
                         isPassed: v3_total >= 3 && v2_total >= 9 && kpm, 
                         items: [
-                            { label: 'Op niveau 3', value: v3_total, target: 3, isPassed: v3_total >= 3, missingText: v3_total < 3 ? `mist er ${3 - v3_total}` : '' },
-                            { label: 'Op niveau 2', value: v2_exact, target: 6, isPassed: v2_eff >= 6, missingText: v2_eff < 6 ? `mist er ${6 - v2_eff}` : '' },
-                            { label: 'Kwalitatief Product Maken ≥ 3', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                            { 
+                                label: 'Op niveau 3 (inclusief KPM)', 
+                                value: v3_total, 
+                                target: 3, 
+                                isPassed: v3_total >= 3 && kpm, 
+                                missingText: (v3_total < 3 ? `mist er ${3 - v3_total}` : '') + (!kpm ? (v3_total < 3 ? ', ' : '') + 'KPM mist' : '') 
+                            },
+                            { label: 'Op niveau 2', value: v2_exact, target: 6, isPassed: v2_eff >= 6, missingText: v2_eff < 6 ? `mist er ${6 - v2_eff}` : '' }
                         ]
                     },
                     hboi: { 
@@ -573,9 +603,14 @@ function buildStatusSection(title, sectionData) {
                     vaardigheden: { 
                         isPassed: v3_total >= 5 && v2_total >= 9 && kpm, 
                         items: [
-                            { label: 'Op niveau 3', value: v3_total, target: 5, isPassed: v3_total >= 5, missingText: v3_total < 5 ? `mist er ${5 - v3_total}` : '' },
-                            { label: 'Op niveau 2', value: v2_exact, target: 4, isPassed: v2_eff >= 4, missingText: v2_eff < 4 ? `mist er ${4 - v2_eff}` : '' },
-                            { label: 'Kwalitatief Product Maken ≥ 3', value: kpm ? 'Ja' : 'Nee', isBooleanTarget: true, isPassed: kpm, missingText: !kpm ? 'vereist' : '' }
+                            { 
+                                label: 'Op niveau 3 (inclusief KPM)', 
+                                value: v3_total, 
+                                target: 5, 
+                                isPassed: v3_total >= 5 && kpm, 
+                                missingText: (v3_total < 5 ? `mist er ${5 - v3_total}` : '') + (!kpm ? (v3_total < 5 ? ', ' : '') + 'KPM mist' : '') 
+                            },
+                            { label: 'Op niveau 2', value: v2_exact, target: 4, isPassed: v2_eff >= 4, missingText: v2_eff < 4 ? `mist er ${4 - v2_eff}` : '' }
                         ]
                     },
                     hboi: { 
@@ -1124,7 +1159,7 @@ function buildStatusSection(title, sectionData) {
                                                 let newItems = [];
                                                 [3, 2, 1, 0].forEach(lvl => {
                                                     let label = lvl === 0 ? 'Op start niveau' : `Op niveau ${lvl}`;
-                                                    let existingItem = section.items.find(i => i.label === label);
+                                                    let existingItem = section.items.find(i => i.label.startsWith(label));
                                                     let count = Object.values(map).filter(l => l === lvl).length;
                                                     
                                                     if (existingItem) {
